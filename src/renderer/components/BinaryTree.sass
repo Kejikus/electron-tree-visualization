@@ -1,0 +1,80 @@
+
+$tree-gap: 1rem
+
+.tree-root
+  padding: 2rem 0
+
+.node-wrapper
+  position: relative
+  display: flex
+  flex-direction: row
+  justify-content: stretch
+  min-height: 1.5rem
+  align-items: center
+  //background-color: rgba(0, 0, 0, 0.1)
+  margin-left: 1rem
+
+  &:before
+    content: ''
+    position: absolute
+    width: $tree-gap / 2
+    height: 50%
+    border-left: 1px solid black
+    left: -$tree-gap / 2
+
+  &:after
+    content: ''
+    position: absolute
+    width: $tree-gap / 2
+    height: 50%
+    left: -$tree-gap
+
+  &.left-node:before
+    top: 0
+    border-bottom: 1px solid black
+
+  &.right-node:before
+    bottom: 0
+    border-top: 1px solid black
+
+  &:only-child
+
+    &:after
+      display: none
+
+    &:before
+      width: $tree-gap
+      left: -$tree-gap
+      border-left: none
+
+
+.node
+  position: relative
+  padding: 0.25rem
+  transition: background-color 0.2s ease-in-out
+  border-radius: 0.25rem
+
+  &.highlight
+    background-color: lightsalmon
+
+  &:after
+    content: ''
+    position: absolute
+    width: 0
+    height: 0
+    right: 0
+    top: 50%
+    transform: translateX(+100%)
+    border-top: 1px solid black
+
+  &:not(.empty):after
+    width: $tree-gap
+
+  &.full:after
+    width: $tree-gap / 2
+
+
+.links
+  display: flex
+  flex-direction: column
+  justify-content: space-between
