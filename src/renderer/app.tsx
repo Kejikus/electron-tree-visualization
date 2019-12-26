@@ -7,6 +7,7 @@ import BinaryTreeLab from "./views/BinaryTreeLab";
 import M from 'materialize-css';
 
 import 'materialize-css/sass/materialize.scss';
+import AVLTreeLab from "./views/AVLTreeLab";
 
 class App extends Component {
 
@@ -40,7 +41,7 @@ class App extends Component {
 						</ul>
 					</div>
 					<div id="tab1" className="col s12"><BinaryTreeLab/></div>
-					<div id="tab2" className="col s12"></div>
+					<div id="tab2" className="col s12"><AVLTreeLab/></div>
 				</div>
 			</div>
 		);

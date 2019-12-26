@@ -2,7 +2,7 @@
 export class TreeNode {
     public parent: TreeNode | null;
     public value: number;
-    public balanceFactor: number;
+    // public balanceFactor: number;
     public leftNode: TreeNode | null;
     public rightNode: TreeNode | null;
     public highlighted: boolean;
@@ -15,7 +15,7 @@ export class TreeNode {
         this.leftNode = leftNode;
         this.rightNode = rightNode;
         this.highlighted = false;
-        this.balanceFactor = 0;
+        // this.balanceFactor = 0;
     }
 
     addLeftNode(value: number): TreeNode {
@@ -36,7 +36,7 @@ export class TreeNode {
         return ret;
     }
 
-    removeRightNode(): TreeNode | null {
+    removeRightNode(balance: boolean = false): TreeNode | null {
         let ret = this.rightNode;
         this.rightNode = null;
         return ret;
@@ -47,8 +47,8 @@ export class TreeNode {
 
         let ret = this.parent;
 
-        if (this == this.parent.leftNode) this.parent.leftNode = null;
-        else if (this == this.parent.rightNode) this.parent.rightNode = null;
+        if (this == this.parent.leftNode) this.parent.removeLeftNode();
+        else if (this == this.parent.rightNode) this.parent.removeRightNode();
         else throw Error('Parent link broken - cannot detach node from wrong parent.');
 
         this.parent = null;
@@ -84,116 +84,101 @@ export class TreeNode {
     next(): TreeNode | null {
         let ptr: TreeNode = this;
 
-        if (ptr.parent == null) return null;
+        if (ptr.rightNode != null) return ptr.rightNode.first();
 
-        if (ptr.parent.rightNode == ptr) return ptr.parent;
-
-        if (ptr.parent.leftNode == ptr) {
-            if (ptr.parent.rightNode != null)
-                return ptr.parent.rightNode.first();
-            else
-                return ptr.parent;
+        while (ptr.parent != null && ptr == ptr.parent.rightNode) {
+            ptr = ptr.parent;
         }
+
+        if (ptr.parent != null && ptr.parent.leftNode == ptr) return ptr.parent;
+
+        return ptr.parent;
+    }
+
+    height(): number {
+        let lHeight = 0;
+        let rHeight = 0;
+        if (this.leftNode != null) lHeight = this.leftNode.height();
+        if (this.rightNode != null) rHeight = this.rightNode.height();
+
+        return Math.max(lHeight, rHeight) + 1;
+    }
+
+    rotateRight(): TreeNode | null {
+        if (this.leftNode == null) return null;
+
+        let leftRoot = this.leftNode;
+        let centralSubtree = this.leftNode.rightNode;
+        let parent = this.detach();
+        leftRoot.detach();
+        if (centralSubtree != null) {
+            centralSubtree.detach();
+            centralSubtree.attach(this);
+        }
+        this.attach(leftRoot);
+        leftRoot.attach(parent);
+
+        if (parent == null)
+            return leftRoot;
 
         return null;
     }
 
+    rotateLeft(): TreeNode | null {
+        if (this.rightNode == null) return null;
 
-    balance(): boolean {
-        if (this.balanceFactor > 1) {
-            if (this.leftNode != null && this.leftNode.balanceFactor <= 0) {  // Small right
-                let leftRoot = this.leftNode;
-                let centralSubtree = this.leftNode.rightNode;
-                let parent = this.detach();
-                leftRoot.detach();
-                if (centralSubtree != null) {
-                    centralSubtree.detach();
-                    centralSubtree.attach(this);
-                }
-                this.attach(leftRoot);
-                leftRoot.attach(parent);
-            } else {
-                let leftRoot = this.leftNode;
-                let lrRoot = leftRoot != null ? leftRoot.rightNode : null;
-                let clSubtree = lrRoot != null ? lrRoot.leftNode : null;
-                let crSubtree = lrRoot != null ? lrRoot.rightNode : null;
-                let parent = this.detach();
-                if (leftRoot != null) {
-                    leftRoot.detach();
-                    if (lrRoot != null) {
-                        lrRoot.detach();
-                        if (clSubtree != null) {
-                            clSubtree.detach();
-                            clSubtree.attach(leftRoot);
-                        }
-                        if (crSubtree != null) {
-                            crSubtree.detach();
-                            crSubtree.attach(this);
-                        }
-                        lrRoot.attach(parent);
-                    }
-                    leftRoot.attach(lrRoot);
-                }
-                this.attach(lrRoot);
-            }
-            return true;
-        } else if (this.balanceFactor < -1) {
-            if (this.rightNode != null && this.rightNode.balanceFactor >= 0) {  // Small right
-                let rightRoot = this.rightNode;
-                let centralSubtree = this.rightNode.leftNode;
-                let parent = this.detach();
-                rightRoot.detach();
-                if (centralSubtree != null) {
-                    centralSubtree.detach();
-                    centralSubtree.attach(this);
-                }
-                this.attach(rightRoot);
-                rightRoot.attach(parent);
-            } else {
-                let rightRoot = this.rightNode;
-                let rlRoot = rightRoot != null ? rightRoot.leftNode : null;
-                let clSubtree = rlRoot != null ? rlRoot.leftNode : null;
-                let crSubtree = rlRoot != null ? rlRoot.rightNode : null;
-                let parent = this.detach();
-                if (rightRoot != null) {
-                    rightRoot.detach();
-                    if (rlRoot != null) {
-                        rlRoot.detach();
-                        if (clSubtree != null) {
-                            clSubtree.detach();
-                            clSubtree.attach(this);
-                        }
-                        if (crSubtree != null) {
-                            crSubtree.detach();
-                            crSubtree.attach(rightRoot);
-                        }
-                        rlRoot.attach(parent);
-                    }
-                    rightRoot.attach(rlRoot);
-                }
-                this.attach(rlRoot);
-            }
-            return true;
+        let rightRoot = this.rightNode;
+        let centralSubtree = this.rightNode.leftNode;
+        let parent = this.detach();
+        rightRoot.detach();
+        if (centralSubtree != null) {
+            centralSubtree.detach();
+            centralSubtree.attach(this);
         }
+        this.attach(rightRoot);
+        rightRoot.attach(parent);
 
-        return false;
+        if (parent == null)
+            return rightRoot;
+
+        return null;
     }
 
+    balanceFactor(): number  {
+        let lHeight = 0;
+        let rHeight = 0;
+        if (this.leftNode != null) lHeight = this.leftNode.height();
+        if (this.rightNode != null) rHeight = this.rightNode.height();
 
-    updateIndex(): number {
-        let rIndex = 0;
-        let lIndex = 0;
+        return lHeight - rHeight;
+    }
 
-        if (this.leftNode != null)
-            lIndex = this.leftNode.updateIndex();
-        if (this.rightNode != null)
-            rIndex = this.rightNode.updateIndex();
+    balance() {
+        if (this.leftNode != null) this.leftNode.balance();
 
-        this.balanceFactor = lIndex - rIndex;
+        if (this.rightNode != null) this.rightNode.balance();
 
-        if (this.balance()) this.updateIndex();
+        let bf = this.balanceFactor();
 
-        return Math.max(lIndex, rIndex) + 1;
+        if (bf > 1) {
+            if (this.leftNode != null && this.leftNode.balanceFactor() <= 0) {  // Small right
+                this.rotateRight();
+            } else {   // Big right
+                if (this.leftNode != null) {
+                    this.leftNode.rotateLeft();
+                    this.rotateRight();
+                }
+            }
+        } else if (bf < -1) {
+            if (this.rightNode != null && this.rightNode.balanceFactor() >= 0) {  // Small left
+                this.rotateLeft();
+            } else {  // Big left
+                if (this.rightNode != null) {
+                    this.rightNode.rotateRight();
+                    this.rotateLeft();
+                }
+            }
+        }
     }
 }
 
@@ -204,7 +189,7 @@ export class BinarySearchTree {
         this.root = root;
     }
 
-    addValue(value: number): TreeNode {
+    addValue(value: number, balance: boolean = false): TreeNode {
         if (this.root == null) {
             this.root = new TreeNode(value);
             return this.root;
@@ -219,19 +204,40 @@ export class BinarySearchTree {
                 if (pointer.leftNode != null) {
                     pointer = pointer.leftNode;
                 } else {
-                    return pointer.addLeftNode(value);
+                    let ret = pointer.addLeftNode(value);
+
+                    if (this.root != null && balance) {
+                        this.root.balance();
+
+                        let ptr = this.root;
+                        while (ptr.parent != null) ptr = ptr.parent;
+
+                        this.root = ptr;
+                    }
+
+                    return ret;
                 }
             } else {
                 if (pointer.rightNode != null) {
                     pointer = pointer.rightNode;
                 } else {
-                    return pointer.addRightNode(value);
+                    let ret = pointer.addRightNode(value);
+                    if (this.root != null && balance) {
+                        this.root.balance();
+
+                        let ptr = this.root;
+                        while (ptr.parent != null) ptr = ptr.parent;
+
+                        this.root = ptr;
+                    }
+
+                    return ret;
                 }
             }
         }
     }
 
-    removeValue(value: number) {
+    removeValue(value: number, balance: boolean = true) {
         if (this.root == null) return;
 
         let pointer: TreeNode | null = this.root;
@@ -272,6 +278,9 @@ export class BinarySearchTree {
                 else pointer = pointer.rightNode;
             }
         }
+
+        if (this.root != null && balance)
+            this.root.balance();
     }
 
     highlightValue(value: number, turn_on: boolean = true) {
@@ -287,5 +296,21 @@ export class BinarySearchTree {
         if (pointer != null) {
             pointer.highlighted = turn_on;
         }
+    }
+
+    highlightLess(value: number, turn_on: boolean = true) {
+        if (this.root == null) return;
+
+        let ptr: TreeNode | null = this.root.first();
+
+        if (ptr.value < value) ptr.highlighted = turn_on;
+
+        while ((ptr = ptr.next()) != null) {
+            if (ptr.value < value) ptr.highlighted = turn_on;
+        }
+    }
+
+    generateRandom(n: number) {
+        for (let i = 0; i < n; i++) this.addValue(Math.round((Math.random() * 198 - 99) * 100) / 100, true);
     }
 }

@@ -44696,6 +44696,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var materialize_css__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(materialize_css__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var materialize_css_sass_materialize_scss__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! materialize-css/sass/materialize.scss */ "./node_modules/materialize-css/sass/materialize.scss");
 /* harmony import */ var materialize_css_sass_materialize_scss__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(materialize_css_sass_materialize_scss__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _views_AVLTreeLab__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./views/AVLTreeLab */ "./src/renderer/views/AVLTreeLab.tsx");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -44715,6 +44716,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -44791,7 +44793,7 @@ function (_Component) {
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_views_BinaryTreeLab__WEBPACK_IMPORTED_MODULE_3__["default"], null)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         id: "tab2",
         className: "col s12"
-      })));
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_views_AVLTreeLab__WEBPACK_IMPORTED_MODULE_6__["default"], null))));
     }
   }]);
 
@@ -44929,6 +44931,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 var TreeNode =
 /*#__PURE__*/
 function () {
+  // public balanceFactor: number;
   function TreeNode() {
     var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
     var parent = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
@@ -44941,8 +44944,6 @@ function () {
 
     _defineProperty(this, "value", void 0);
 
-    _defineProperty(this, "balanceFactor", void 0);
-
     _defineProperty(this, "leftNode", void 0);
 
     _defineProperty(this, "rightNode", void 0);
@@ -44953,8 +44954,7 @@ function () {
     this.parent = parent;
     this.leftNode = leftNode;
     this.rightNode = rightNode;
-    this.highlighted = false;
-    this.balanceFactor = 0;
+    this.highlighted = false; // this.balanceFactor = 0;
   }
 
   _createClass(TreeNode, [{
@@ -44981,6 +44981,7 @@ function () {
   }, {
     key: "removeRightNode",
     value: function removeRightNode() {
+      var balance = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       var ret = this.rightNode;
       this.rightNode = null;
       return ret;
@@ -44990,7 +44991,7 @@ function () {
     value: function detach() {
       if (this.parent == null) return null;
       var ret = this.parent;
-      if (this == this.parent.leftNode) this.parent.leftNode = null;else if (this == this.parent.rightNode) this.parent.rightNode = null;else throw Error('Parent link broken - cannot detach node from wrong parent.');
+      if (this == this.parent.leftNode) this.parent.removeLeftNode();else if (this == this.parent.rightNode) this.parent.removeRightNode();else throw Error('Parent link broken - cannot detach node from wrong parent.');
       this.parent = null;
       return ret;
     }
@@ -45022,137 +45023,101 @@ function () {
     key: "next",
     value: function next() {
       var ptr = this;
-      if (ptr.parent == null) return null;
-      if (ptr.parent.rightNode == ptr) return ptr.parent;
+      if (ptr.rightNode != null) return ptr.rightNode.first();
 
-      if (ptr.parent.leftNode == ptr) {
-        if (ptr.parent.rightNode != null) return ptr.parent.rightNode.first();else return ptr.parent;
+      while (ptr.parent != null && ptr == ptr.parent.rightNode) {
+        ptr = ptr.parent;
       }
 
+      if (ptr.parent != null && ptr.parent.leftNode == ptr) return ptr.parent;
+      return ptr.parent;
+    }
+  }, {
+    key: "height",
+    value: function height() {
+      var lHeight = 0;
+      var rHeight = 0;
+      if (this.leftNode != null) lHeight = this.leftNode.height();
+      if (this.rightNode != null) rHeight = this.rightNode.height();
+      return Math.max(lHeight, rHeight) + 1;
+    }
+  }, {
+    key: "rotateRight",
+    value: function rotateRight() {
+      if (this.leftNode == null) return null;
+      var leftRoot = this.leftNode;
+      var centralSubtree = this.leftNode.rightNode;
+      var parent = this.detach();
+      leftRoot.detach();
+
+      if (centralSubtree != null) {
+        centralSubtree.detach();
+        centralSubtree.attach(this);
+      }
+
+      this.attach(leftRoot);
+      leftRoot.attach(parent);
+      if (parent == null) return leftRoot;
       return null;
+    }
+  }, {
+    key: "rotateLeft",
+    value: function rotateLeft() {
+      if (this.rightNode == null) return null;
+      var rightRoot = this.rightNode;
+      var centralSubtree = this.rightNode.leftNode;
+      var parent = this.detach();
+      rightRoot.detach();
+
+      if (centralSubtree != null) {
+        centralSubtree.detach();
+        centralSubtree.attach(this);
+      }
+
+      this.attach(rightRoot);
+      rightRoot.attach(parent);
+      if (parent == null) return rightRoot;
+      return null;
+    }
+  }, {
+    key: "balanceFactor",
+    value: function balanceFactor() {
+      var lHeight = 0;
+      var rHeight = 0;
+      if (this.leftNode != null) lHeight = this.leftNode.height();
+      if (this.rightNode != null) rHeight = this.rightNode.height();
+      return lHeight - rHeight;
     }
   }, {
     key: "balance",
     value: function balance() {
-      if (this.balanceFactor > 1) {
-        if (this.leftNode != null && this.leftNode.balanceFactor <= 0) {
+      if (this.leftNode != null) this.leftNode.balance();
+      if (this.rightNode != null) this.rightNode.balance();
+      var bf = this.balanceFactor();
+
+      if (bf > 1) {
+        if (this.leftNode != null && this.leftNode.balanceFactor() <= 0) {
           // Small right
-          var leftRoot = this.leftNode;
-          var centralSubtree = this.leftNode.rightNode;
-          var parent = this.detach();
-          leftRoot.detach();
-
-          if (centralSubtree != null) {
-            centralSubtree.detach();
-            centralSubtree.attach(this);
-          }
-
-          this.attach(leftRoot);
-          leftRoot.attach(parent);
+          this.rotateRight();
         } else {
-          var _leftRoot = this.leftNode;
-          var lrRoot = _leftRoot != null ? _leftRoot.rightNode : null;
-          var clSubtree = lrRoot != null ? lrRoot.leftNode : null;
-          var crSubtree = lrRoot != null ? lrRoot.rightNode : null;
-
-          var _parent = this.detach();
-
-          if (_leftRoot != null) {
-            _leftRoot.detach();
-
-            if (lrRoot != null) {
-              lrRoot.detach();
-
-              if (clSubtree != null) {
-                clSubtree.detach();
-                clSubtree.attach(_leftRoot);
-              }
-
-              if (crSubtree != null) {
-                crSubtree.detach();
-                crSubtree.attach(this);
-              }
-
-              lrRoot.attach(_parent);
-            }
-
-            _leftRoot.attach(lrRoot);
+          // Big right
+          if (this.leftNode != null) {
+            this.leftNode.rotateLeft();
+            this.rotateRight();
           }
-
-          this.attach(lrRoot);
         }
-
-        return true;
-      } else if (this.balanceFactor < -1) {
-        if (this.rightNode != null && this.rightNode.balanceFactor >= 0) {
-          // Small right
-          var rightRoot = this.rightNode;
-          var _centralSubtree = this.rightNode.leftNode;
-
-          var _parent2 = this.detach();
-
-          rightRoot.detach();
-
-          if (_centralSubtree != null) {
-            _centralSubtree.detach();
-
-            _centralSubtree.attach(this);
-          }
-
-          this.attach(rightRoot);
-          rightRoot.attach(_parent2);
+      } else if (bf < -1) {
+        if (this.rightNode != null && this.rightNode.balanceFactor() >= 0) {
+          // Small left
+          this.rotateLeft();
         } else {
-          var _rightRoot = this.rightNode;
-          var rlRoot = _rightRoot != null ? _rightRoot.leftNode : null;
-
-          var _clSubtree = rlRoot != null ? rlRoot.leftNode : null;
-
-          var _crSubtree = rlRoot != null ? rlRoot.rightNode : null;
-
-          var _parent3 = this.detach();
-
-          if (_rightRoot != null) {
-            _rightRoot.detach();
-
-            if (rlRoot != null) {
-              rlRoot.detach();
-
-              if (_clSubtree != null) {
-                _clSubtree.detach();
-
-                _clSubtree.attach(this);
-              }
-
-              if (_crSubtree != null) {
-                _crSubtree.detach();
-
-                _crSubtree.attach(_rightRoot);
-              }
-
-              rlRoot.attach(_parent3);
-            }
-
-            _rightRoot.attach(rlRoot);
+          // Big left
+          if (this.rightNode != null) {
+            this.rightNode.rotateRight();
+            this.rotateLeft();
           }
-
-          this.attach(rlRoot);
         }
-
-        return true;
       }
-
-      return false;
-    }
-  }, {
-    key: "updateIndex",
-    value: function updateIndex() {
-      var rIndex = 0;
-      var lIndex = 0;
-      if (this.leftNode != null) lIndex = this.leftNode.updateIndex();
-      if (this.rightNode != null) rIndex = this.rightNode.updateIndex();
-      this.balanceFactor = lIndex - rIndex;
-      if (this.balance()) this.updateIndex();
-      return Math.max(lIndex, rIndex) + 1;
     }
   }]);
 
@@ -45174,6 +45139,8 @@ function () {
   _createClass(BinarySearchTree, [{
     key: "addValue",
     value: function addValue(value) {
+      var balance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
       if (this.root == null) {
         this.root = new TreeNode(value);
         return this.root;
@@ -45188,13 +45155,39 @@ function () {
           if (pointer.leftNode != null) {
             pointer = pointer.leftNode;
           } else {
-            return pointer.addLeftNode(value);
+            var ret = pointer.addLeftNode(value);
+
+            if (this.root != null && balance) {
+              this.root.balance();
+              var ptr = this.root;
+
+              while (ptr.parent != null) {
+                ptr = ptr.parent;
+              }
+
+              this.root = ptr;
+            }
+
+            return ret;
           }
         } else {
           if (pointer.rightNode != null) {
             pointer = pointer.rightNode;
           } else {
-            return pointer.addRightNode(value);
+            var _ret = pointer.addRightNode(value);
+
+            if (this.root != null && balance) {
+              this.root.balance();
+              var _ptr = this.root;
+
+              while (_ptr.parent != null) {
+                _ptr = _ptr.parent;
+              }
+
+              this.root = _ptr;
+            }
+
+            return _ret;
           }
         }
       }
@@ -45202,6 +45195,7 @@ function () {
   }, {
     key: "removeValue",
     value: function removeValue(value) {
+      var balance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       if (this.root == null) return;
       var pointer = this.root;
 
@@ -45237,6 +45231,8 @@ function () {
           if (value < pointer.value) pointer = pointer.leftNode;else pointer = pointer.rightNode;
         }
       }
+
+      if (this.root != null && balance) this.root.balance();
     }
   }, {
     key: "highlightValue",
@@ -45253,10 +45249,188 @@ function () {
         pointer.highlighted = turn_on;
       }
     }
+  }, {
+    key: "highlightLess",
+    value: function highlightLess(value) {
+      var turn_on = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      if (this.root == null) return;
+      var ptr = this.root.first();
+      if (ptr.value < value) ptr.highlighted = turn_on;
+
+      while ((ptr = ptr.next()) != null) {
+        if (ptr.value < value) ptr.highlighted = turn_on;
+      }
+    }
+  }, {
+    key: "generateRandom",
+    value: function generateRandom(n) {
+      for (var i = 0; i < n; i++) {
+        this.addValue(Math.round((Math.random() * 198 - 99) * 100) / 100, true);
+      }
+    }
   }]);
 
   return BinarySearchTree;
 }();
+
+/***/ }),
+
+/***/ "./src/renderer/views/AVLTreeLab.tsx":
+/*!*******************************************!*\
+  !*** ./src/renderer/views/AVLTreeLab.tsx ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AVLTreeLab; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _structures_BinarySearchTree__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../structures/BinarySearchTree */ "./src/renderer/structures/BinarySearchTree.ts");
+/* harmony import */ var _components_BinaryTree__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../components/BinaryTree */ "./src/renderer/components/BinaryTree.tsx");
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+
+var AVLTreeLab =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(AVLTreeLab, _Component);
+
+  function AVLTreeLab(props) {
+    var _this;
+
+    _classCallCheck(this, AVLTreeLab);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(AVLTreeLab).call(this, props));
+
+    _defineProperty(_assertThisInitialized(_this), "valueInput", react__WEBPACK_IMPORTED_MODULE_0___default.a.createRef());
+
+    _defineProperty(_assertThisInitialized(_this), "addBtn", react__WEBPACK_IMPORTED_MODULE_0___default.a.createRef());
+
+    _defineProperty(_assertThisInitialized(_this), "removeBtn", react__WEBPACK_IMPORTED_MODULE_0___default.a.createRef());
+
+    _defineProperty(_assertThisInitialized(_this), "highlightBtn", react__WEBPACK_IMPORTED_MODULE_0___default.a.createRef());
+
+    _defineProperty(_assertThisInitialized(_this), "generateBtn", react__WEBPACK_IMPORTED_MODULE_0___default.a.createRef());
+
+    _this.state = {
+      tree: new _structures_BinarySearchTree__WEBPACK_IMPORTED_MODULE_1__["BinarySearchTree"]()
+    };
+    return _this;
+  }
+
+  _createClass(AVLTreeLab, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      var _this2 = this;
+
+      var add = this.addBtn.current;
+      var remove = this.removeBtn.current;
+      var highlight = this.highlightBtn.current;
+      var generate = this.generateBtn.current;
+      var valueInp = this.valueInput.current;
+      if (add != null) add.onclick = function (e) {
+        if (valueInp != null) {
+          _this2.state.tree.addValue(parseInt(valueInp.value), true);
+
+          _this2.forceUpdate();
+        }
+      };
+      if (remove != null) remove.onclick = function (e) {
+        if (valueInp != null) {
+          _this2.state.tree.removeValue(parseInt(valueInp.value), true);
+
+          _this2.forceUpdate();
+        }
+      };
+      if (highlight != null) highlight.onclick = function (e) {
+        if (valueInp != null) {
+          var inp = parseInt(valueInp.value);
+
+          _this2.state.tree.highlightLess(inp);
+
+          _this2.forceUpdate();
+
+          setTimeout(function () {
+            _this2.state.tree.highlightLess(inp, false);
+
+            _this2.forceUpdate();
+          }, 3000);
+        }
+      };
+      if (generate != null) generate.onclick = function (e) {
+        if (valueInp != null) {
+          var inp = parseInt(valueInp.value);
+
+          _this2.state.tree.generateRandom(inp);
+
+          _this2.forceUpdate();
+        }
+      };
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "container"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "row valign-wrapper"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "input-field col s3"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "number",
+        id: "a",
+        ref: this.valueInput
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "col s7"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "valign-wrapper"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        className: "btn-small waves-effect waves-light blue",
+        ref: this.addBtn
+      }, "Add"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        className: "btn-small waves-effect waves-light blue",
+        ref: this.removeBtn
+      }, "Remove"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        className: "btn-small waves-effect waves-light blue",
+        ref: this.highlightBtn
+      }, "Highlight"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        className: "btn-small waves-effect waves-light blue",
+        ref: this.generateBtn
+      }, "Generate"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "col s2"
+      }, "Height: ", this.state.tree.root != null ? this.state.tree.root.height() : 0)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components_BinaryTree__WEBPACK_IMPORTED_MODULE_2__["BinaryTree"], {
+        tree: this.state.tree.root
+      }));
+    }
+  }]);
+
+  return AVLTreeLab;
+}(react__WEBPACK_IMPORTED_MODULE_0__["Component"]);
+
+
 
 /***/ }),
 
