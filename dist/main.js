@@ -99,7 +99,30 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "win", function() { return win; });
 /* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! electron */ "electron");
 /* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
 
+
+
+
+function sendRenderer(channel, ...args) {
+  win.webContents.send(channel, ...args);
+}
+
+electron__WEBPACK_IMPORTED_MODULE_0__["ipcMain"].on("open-file-dialog", event1 => {
+  electron__WEBPACK_IMPORTED_MODULE_0__["dialog"].showOpenDialog(win, {
+    filters: [{
+      name: "JSON",
+      extensions: ["json"]
+    }]
+  }).then(value => {
+    if (value.canceled) return;
+    Object(fs__WEBPACK_IMPORTED_MODULE_1__["readFile"])(value.filePaths[0], "utf-8", (err, data) => {
+      if (err != null) return;
+      sendRenderer('opened-file-content', data);
+    });
+  });
+});
 let win;
 
 function createWindow() {
@@ -135,6 +158,17 @@ electron__WEBPACK_IMPORTED_MODULE_0__["app"].on('window-all-closed', () => {
 /***/ (function(module, exports) {
 
 module.exports = require("electron");
+
+/***/ }),
+
+/***/ "fs":
+/*!*********************!*\
+  !*** external "fs" ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("fs");
 
 /***/ })
 

@@ -48,13 +48,13 @@ module.exports = {
                 test: /.js$/,
                 enforce: 'pre',
                 loader: 'source-map-loader'
+            },
+            {
+                test: /\.txt/,
+                use: {
+                    loader: 'raw-loader'
+                }
             }
-            // {
-            //     test: /\.txt/,
-            //     use: {
-            //         loader: 'raw-loader'
-            //     }
-            // },
             // {
             //     test: /\.s[a|c]ss$/,
             //     use: [

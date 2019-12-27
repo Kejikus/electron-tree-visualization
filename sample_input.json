@@ -1,0 +1,12 @@
+{
+  "town_count": 4,
+  "town_distance_matrix": [
+    [0, null, 40, 250],
+    [null, 0, 30, 126],
+    [60, 30, 0, 70],
+    [200, 126, 60, 0]
+  ],
+  "start_point_distances": [
+    20, 40, null, 60
+  ]
+}

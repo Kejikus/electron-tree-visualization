@@ -8,6 +8,7 @@ import M from 'materialize-css';
 
 import 'materialize-css/sass/materialize.scss';
 import AVLTreeLab from "./views/AVLTreeLab";
+import {TSPLab} from "./views/TSPLab";
 
 class App extends Component {
 
@@ -36,12 +37,14 @@ class App extends Component {
 				<div className="row">
 					<div className="col s12">
 						<ul className="tabs" ref={this.tabsRef}>
-							<li className="tab col s6"><a href="#tab1" className="active">Binary tree</a></li>
-							<li className="tab col s6"><a href="#tab2">AVL Tree</a></li>
+							<li className="tab col s4"><a href="#tab1" className="active">Binary tree</a></li>
+							<li className="tab col s4"><a href="#tab2">AVL Tree</a></li>
+							<li className="tab col s4"><a href="#tab3">Route planner</a></li>
 						</ul>
 					</div>
 					<div id="tab1" className="col s12"><BinaryTreeLab/></div>
 					<div id="tab2" className="col s12"><AVLTreeLab/></div>
+					<div id="tab3" className="col s12"><TSPLab/></div>
 				</div>
 			</div>
 		);

@@ -1,4 +1,29 @@
 import {app, BrowserWindow, Menu, dialog} from "electron";
+import {ipcMain} from 'electron';
+import {readFile} from "fs";
+
+function sendRenderer(channel: string, ...args: any) {
+	win.webContents.send(channel, ...args);
+}
+
+ipcMain.on("open-file-dialog", event1 => {
+	dialog.showOpenDialog(win, {
+		filters: [
+			{
+				name: "JSON",
+				extensions: ["json"]
+			},
+		]
+	}).then(value => {
+		if (value.canceled) return;
+
+		readFile(value.filePaths[0], "utf-8", (err, data) => {
+			if (err != null) return;
+
+			sendRenderer('opened-file-content', data);
+		});
+	})
+});
 
 export let win: BrowserWindow;
 

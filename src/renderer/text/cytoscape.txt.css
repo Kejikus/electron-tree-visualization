@@ -1,0 +1,43 @@
+node {
+    text-halign: center;
+    text-valign: center;
+    font-family: Consolas;
+    color: black;
+}
+
+node[id="-1"] {
+    shape: star;
+    background-color: green;
+}
+
+node[label] {
+    label: data(label);
+}
+
+edge {
+    curve-style: bezier;
+    text-background-opacity: 1;
+    text-background-color: white;
+    text-background-shape: roundrectangle;
+    text-rotation: autorotate;
+    text-background-padding: 1px;
+    text-halign: center;
+    text-valign: top;
+    font-family: Consolas;
+    target-arrow-shape: triangle;
+}
+
+edge:selected {
+    z-index: 1;
+    /*background-color: red;*/
+}
+
+.selected {
+    background-color: red;
+    line-color: red;
+    target-arrow-color: red;
+}
+
+edge[weight] {
+    label: data(weight);
+}
